@@ -26,9 +26,7 @@ GIT_COMMON_DIR_REL=$(git rev-parse --git-common-dir)
 GIT_COMMON_DIR=$(realpath "$GIT_COMMON_DIR_REL")
 WORKDIR=${WORKDIR:-$REPODIR}
 
-#CUDA_VERSION=${CUDA_VERSION:-11.8.0}
-CUSTOM_CUDA_PATH=${CUSTOM_CUDA_PATH:-"/usr/local/cuda/"}
-OS_RELEASE=${OS_RELEASE:-"8"}
+CUDA_VERSION=${CUDA_VERSION:-11.8.0}
 DOCKER_CMD=${DOCKER_CMD:-docker}
 DOCKER_BUILD_EXTRA_ARGS=${DOCKER_BUILD_EXTRA_ARGS:-""}
 if [ "$(uname -m)" == "aarch64" ]; then
@@ -40,31 +38,15 @@ DOCKER_RUN_EXTRA_ARGS=${DOCKER_RUN_EXTRA_ARGS:-""}
 LOCAL_CCACHE_DIR=${LOCAL_CCACHE_DIR:-"$HOME/.ccache"}
 LOCAL_MAVEN_REPO=${LOCAL_MAVEN_REPO:-"$HOME/.m2/repository"}
 
-#SPARK_IMAGE_NAME="spark-rapids-jni-build:${CUDA_VERSION}-devel-rockylinux8"
-# Image name for custom CUDA
-SPARK_IMAGE_NAME="spark-rapids-jni-build:custom-cuda-rockylinux${OS_RELEASE}"
-
-# Check if custom CUDA toolkit path exists
-if [ ! -d "$CUSTOM_CUDA_PATH" ]; then
-    echo "Error: Custom CUDA toolkit path does not exist: $CUSTOM_CUDA_PATH"
-    echo "Please set CUSTOM_CUDA_PATH to the correct location"
-    exit 1
-fi
+SPARK_IMAGE_NAME="spark-rapids-jni-build:${CUDA_VERSION}-devel-rockylinux8"
 
 # ensure directories exist
 mkdir -p "$LOCAL_CCACHE_DIR" "$LOCAL_MAVEN_REPO"
 
-#$DOCKER_CMD build $DOCKER_BUILD_EXTRA_ARGS -f $REPODIR/ci/Dockerfile \
-#  --build-arg CUDA_VERSION=$CUDA_VERSION \
-#  -t $SPARK_IMAGE_NAME \
-#  $REPODIR/build
-
-echo "Building Docker image with custom CUDA support..."
-$DOCKER_CMD build $DOCKER_BUILD_EXTRA_ARGS -f $REPODIR/ci/Dockerfile.custom \
-      --build-arg OS_RELEASE=$OS_RELEASE \
-      -t $SPARK_IMAGE_NAME \
-      $REPODIR/build
-
+$DOCKER_CMD build $DOCKER_BUILD_EXTRA_ARGS -f $REPODIR/ci/Dockerfile \
+  --build-arg CUDA_VERSION=$CUDA_VERSION \
+  -t $SPARK_IMAGE_NAME \
+  $REPODIR/build
 
 if [[ "$DOCKER_CMD" == "docker" ]]; then
   DOCKER_GPU_OPTS=${DOCKER_GPU_OPTS:-"--gpus all"}
@@ -78,15 +60,11 @@ else
   RUN_CMD="${@@Q}"
 fi
 
-echo "Using custom CUDA toolkit from: $CUSTOM_CUDA_PATH"
-echo "Running container with custom CUDA toolkit..."
-
 $DOCKER_CMD run $DOCKER_GPU_OPTS $DOCKER_RUN_EXTRA_ARGS -u $(id -u):$(id -g) --rm \
   -v "/etc/group:/etc/group:ro" \
   -v "/etc/passwd:/etc/passwd:ro" \
   -v "/etc/shadow:/etc/shadow:ro" \
   -v "/etc/sudoers.d:/etc/sudoers.d:ro" \
-  -v "/usr/local/cuda-12.9:/usr/local/cuda" \
   -v "$GIT_COMMON_DIR:$GIT_COMMON_DIR:rw" \
   -v "$WORKDIR:$WORKDIR:rw" \
   -v "$LOCAL_CCACHE_DIR:$LOCAL_CCACHE_DIR:rw" \
