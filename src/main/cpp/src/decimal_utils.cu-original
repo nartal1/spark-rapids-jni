@@ -69,39 +69,18 @@ struct chunked256 {
   {
     __uint128_t carry_and_sum = 0;
     for (int i = 0; i < 4; ++i) {
-      // printf("CALEB: add, [i=%d] chunks[i] = %lx i.e. (%lu), as uint128 = %llx i.e. (%llu)\n", 
-      //   i, chunks[i], chunks[i], static_cast<__uint128_t>(chunks[i]), static_cast<__uint128_t>(chunks[i]));
-
       carry_and_sum += static_cast<__uint128_t>(chunks[i]) + a.chunks[i];
-      // printf("CALEB: add, [i=%d] carry_and_sum = %llx\n", i, carry_and_sum);
       chunks[i] = static_cast<uint64_t>(carry_and_sum);
       carry_and_sum >>= 64;
-      // printf("CALEB: add, [i=%d] carry_and_sum, after shift = %llx\n", i, carry_and_sum);
     }
   }
 
   inline __device__ void negate()
   {
-
     for (int i = 0; i < 4; i++) {
-      if (chunks[i] != 0x0ull) {
-        // printf("CALEB: Expected 0x0\n");
-      }
       chunks[i] = ~chunks[i];
-      if (chunks[i] != 0xffffffffffffffffull) {
-        // printf("CALEB: Expected 0xffffffffffffffffull\n");
-      }
     }
-    //printf("CALEB: inside negate\n");
-    // printf("CALEB: negate, before add: chunks[0] = %llx\n", chunks[0]);
-    // printf("CALEB: negate, before add: chunks[1] = %llx\n", chunks[1]);
-    // printf("CALEB: negate, before add: chunks[2] = %llx\n", chunks[2]);
-    // printf("CALEB: negate, before add: chunks[3] = %llx\n", chunks[3]);
     add(1);
-    // printf("CALEB: negate, after add: chunks[0] = %llx\n", chunks[0]);
-    // printf("CALEB: negate, after add: chunks[1] = %llx\n", chunks[1]);
-    // printf("CALEB: negate, after add: chunks[2] = %llx\n", chunks[2]);
-    // printf("CALEB: negate, after add: chunks[3] = %llx\n", chunks[3]);
   }
 
   inline __device__ bool lt_unsigned(chunked256 const& other) const
@@ -194,13 +173,12 @@ __device__ divmod256 divide_unsigned(chunked256 const& n, __int128_t const& d)
       q[block]        = q[block] | bit_set;
     }
   }
-  printf("CALEB: inside divide_unsigned\n");
-  // printf("CALEB: divide_unsigned remainder = %lld\n", r);
+  printf("CALEB: divide_unsigned remainder = %lld\n", r);
   auto const ret = divmod256{q, static_cast<__int128_t>(r)};
-  // printf("CALEB: divide_unsigned quotient.chunks[0] = %llu\n", ret.quotient.chunks[0]);
-  // printf("CALEB: divide_unsigned quotient.chunks[1] = %llu\n", ret.quotient.chunks[1]);
-  // printf("CALEB: divide_unsigned quotient.chunks[2] = %llu\n", ret.quotient.chunks[2]);
-  // printf("CALEB: divide_unsigned quotient.chunks[3] = %llu\n", ret.quotient.chunks[3]);
+  printf("CALEB: divide_unsigned quotient.chunks[0] = %llu\n", ret.quotient.chunks[0]);
+  printf("CALEB: divide_unsigned quotient.chunks[1] = %llu\n", ret.quotient.chunks[1]);
+  printf("CALEB: divide_unsigned quotient.chunks[2] = %llu\n", ret.quotient.chunks[2]);
+  printf("CALEB: divide_unsigned quotient.chunks[3] = %llu\n", ret.quotient.chunks[3]);
   return ret;
 }
 
@@ -219,21 +197,14 @@ __device__ divmod256 divide(chunked256 const& n, __int128_t const& d)
   __int128_t abs_d = is_d_neg ? -d : d;
   divmod256 result = divide_unsigned(abs_n, abs_d);
 
-  if (is_d_neg != is_n_neg) { 
-    // printf("CALEB: divide: Negating quotient\n");
-    result.quotient.negate(); 
-  }
-
-  printf("CALEB: inside divide\n");
-  // printf("is_n_neg = %d\n", is_n_neg);
-  // printf("is_d_neg = %d\n", is_d_neg);
-  printf("CALEB: divide quotient.chunks[0] = %llu, %llx\n", result.quotient.chunks[0], result.quotient.chunks[0]);
-  printf("CALEB: divide quotient.chunks[1] = %llu, %llx\n", result.quotient.chunks[1], result.quotient.chunks[1]);
-  printf("CALEB: divide quotient.chunks[2] = %llu, %llx\n", result.quotient.chunks[2], result.quotient.chunks[2]);
-  printf("CALEB: divide quotient.chunks[3] = %llu, %llx\n", result.quotient.chunks[3], result.quotient.chunks[3]);
+  if (is_d_neg != is_n_neg) { result.quotient.negate(); }
+  printf("CALEB: divide quotient.chunks[0] = %llu\n", result.quotient.chunks[0]);
+  printf("CALEB: divide quotient.chunks[1] = %llu\n", result.quotient.chunks[1]);
+  printf("CALEB: divide quotient.chunks[2] = %llu\n", result.quotient.chunks[2]);
+  printf("CALEB: divide quotient.chunks[3] = %llu\n", result.quotient.chunks[3]);
 
   if (is_n_neg) { result.remainder = -result.remainder; }
-  // printf("CALEB: divide remainder = %lld\n", result.remainder);
+  printf("CALEB: divide remainder = %lld\n", result.remainder);
 
   return result;
 }
@@ -808,8 +779,7 @@ struct dec128_divider {
 
   __device__ void operator()(cudf::size_type const i) const
   {
-    // printf("CALEB: dec128_divider::operator(%d)\n", i);
-    printf("CALEB: inside dec128_divider::operator\n");
+    printf("CALEB: dec128_divider::operator(%d)\n", i);
     chunked256 n(a_data[i]);
     __int128_t const d(b_data[i]);
 
@@ -824,45 +794,44 @@ struct dec128_divider {
     // quot_scale, so we need to multiply a by a set amount before we can do the divide.
 
     int n_shift_exp = quot_scale - (a_scale - b_scale);
-    // printf("CALEB: a_scale = %d\n", a_scale);
-    // printf("CALEB: b_scale = %d\n", b_scale);
-    // printf("CALEB: quot_scale = %d\n", quot_scale);
-    // printf("CALEB: n_shift_exp = %d\n", n_shift_exp);
+    printf("CALEB: a_scale = %d\n", a_scale);
+    printf("CALEB: b_scale = %d\n", b_scale);
+    printf("CALEB: quot_scale = %d\n", quot_scale);
+    printf("CALEB: n_shift_exp = %d\n", n_shift_exp);
 
     if (n_shift_exp > 0) {
-      // printf("CALEB: dec128_divider::operator(%d) n_shift_exp > 0\n", i);
+      printf("CALEB: dec128_divider::operator(%d) n_shift_exp > 0\n", i);
       // In this case we have to divide twice to get the answer we want.
       // The first divide is a regular divide
       divmod256 const first_div_result = divide(n, d);
       auto const quotient = first_div_result.quotient;
-      // printf("CALEB: quotient.chunks[0] = %llu\n", quotient.chunks[0]);
-      // printf("CALEB: quotient.chunks[1] = %llu\n", quotient.chunks[1]);
-      // printf("CALEB: quotient.chunks[2] = %llu\n", quotient.chunks[2]);
-      // printf("CALEB: quotient.chunks[3] = %llu\n", quotient.chunks[3]);
+      printf("CALEB: quotient.chunks[0] = %llu\n", quotient.chunks[0]);
+      printf("CALEB: quotient.chunks[1] = %llu\n", quotient.chunks[1]);
+      printf("CALEB: quotient.chunks[2] = %llu\n", quotient.chunks[2]);
+      printf("CALEB: quotient.chunks[3] = %llu\n", quotient.chunks[3]);
 
       // Ignore the remainder because we don't need it.
       auto const scale_divisor = pow_ten(n_shift_exp).as_128_bits();
-      // printf("CALEB: scale_divisor = %lld\n", scale_divisor);
+      printf("CALEB: scale_divisor = %lld\n", scale_divisor);
 
       // The second divide gets the result into the scale that we care about and does the rounding.
       chunked256 result;
       if constexpr (is_int_div) {
-        // printf("CALEB: dec128_divider::operator(%d) is_int_div\n", i);
+        printf("CALEB: dec128_divider::operator(%d) is_int_div\n", i);
         result           = integer_divide(first_div_result.quotient, scale_divisor);
-        // printf("CALEB: result.chunks[0] = %llu\n", result.chunks[0]);
-        // printf("CALEB: result.chunks[1] = %llu\n", result.chunks[1]);
-        // printf("CALEB: result.chunks[2] = %llu\n", result.chunks[2]);
-        // printf("CALEB: result.chunks[3] = %llu\n", result.chunks[3]);
+        printf("CALEB: result.chunks[0] = %llu\n", result.chunks[0]);
+        printf("CALEB: result.chunks[1] = %llu\n", result.chunks[1]);
+        printf("CALEB: result.chunks[2] = %llu\n", result.chunks[2]);
+        printf("CALEB: result.chunks[3] = %llu\n", result.chunks[3]);
         quotient_data[i] = result.as_64_bits();
       } else {
-        // printf("CALEB: dec128_divider::operator(%d) not is_int_div\n", i);
+        printf("CALEB: dec128_divider::operator(%d) not is_int_div\n", i);
         result           = divide_and_round(first_div_result.quotient, scale_divisor);
         quotient_data[i] = result.as_128_bits();
       }
       overflows[i] = is_greater_than_decimal_38(result);
-      printf("CALEB: inside if of dec128_divider::operator\n");
     } else if (n_shift_exp < -38) {
-      // printf("CALEB: dec128_divider::operator(%d) n_shift_exp < -38\n", i);
+      printf("CALEB: dec128_divider::operator(%d) n_shift_exp < -38\n", i);
       // We need to do a multiply before we can divide, but the multiply might
       // overflow so we do a multiply then a divide and shift the result and
       // remainder over by the amount left to multiply. It is kind of like long
@@ -885,27 +854,27 @@ struct dec128_divider {
       result.add(second_div_result.quotient);
 
       if constexpr (is_int_div) {
-        // printf("CALEB: dec128_divider::operator(%d) is_int_div\n", i);
+        printf("CALEB: dec128_divider::operator(%d) is_int_div\n", i);
         overflows[i]     = is_greater_than_decimal_38(result);
         quotient_data[i] = result.as_64_bits();
       } else {
         // and finally round
-        // printf("CALEB: dec128_divider::operator(%d) not is_int_div\n", i);
+        printf("CALEB: dec128_divider::operator(%d) not is_int_div\n", i);
         result = round_from_remainder(result, second_div_result.remainder, scaled_div_r, d);
         quotient_data[i] = result.as_128_bits();
       }
       overflows[i] = is_greater_than_decimal_38(result);
     } else {
-      // printf("CALEB: dec128_divider::operator(%d) n_shift_exp between -38 and 0\n", i);
+      printf("CALEB: dec128_divider::operator(%d) n_shift_exp between -38 and 0\n", i);
       // Regular multiply followed by a divide
       if (n_shift_exp < 0) { n = multiply(n, pow_ten(-n_shift_exp)); }
       chunked256 result;
       if constexpr (is_int_div) {
-        // printf("CALEB: dec128_divider::operator(%d) is_int_div\n", i);
+        printf("CALEB: dec128_divider::operator(%d) is_int_div\n", i);
         result           = integer_divide(n, d);
         quotient_data[i] = result.as_64_bits();
       } else {
-        // printf("CALEB: dec128_divider::operator(%d) not is_int_div\n", i);
+        printf("CALEB: dec128_divider::operator(%d) not is_int_div\n", i);
         result           = divide_and_round(n, d);
         quotient_data[i] = result.as_128_bits();
       }

@@ -21,7 +21,7 @@ import ai.rapids.cudf.ColumnView;
 import ai.rapids.cudf.DType;
 import ai.rapids.cudf.NativeDepsLoader;
 import ai.rapids.cudf.Table;
-
+import ai.rapids.cudf.TableDebug;
 public class DecimalUtils {
   static {
     NativeDepsLoader.loadNativeDeps();
@@ -108,7 +108,14 @@ public class DecimalUtils {
    *         row.
    */
   public static Table integerDivide128(ColumnView a, ColumnView b) {
-    return new Table(divide128(a.getNativeView(), b.getNativeView(), 0, true));
+    System.out.println("integerDivide128 called with a: " + a.getType() + ", b: " + b.getType());
+    TableDebug debug = TableDebug.get();
+    debug.debug("a", a);
+    debug.debug("b", b);
+    Table res = new Table(divide128(a.getNativeView(), b.getNativeView(), 0, true));
+    // System.out.println("res: " + res);
+    debug.debug("res", res);
+    return res;
   }
 
   /**

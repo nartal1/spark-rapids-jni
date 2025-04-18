@@ -97,6 +97,7 @@ set_property(
 )
 message(VERBOSE "SPARK_RAPIDS_JNI: RMM_LOGGING_LEVEL = '${RMM_LOGGING_LEVEL}'.")
 
+#set_source_files_properties(src/decimal_utils.cu PROPERTIES COMPILE_FLAGS "-G -keep")
 set(CMAKE_PREFIX_PATH ${CUDF_INSTALL_DIR})
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules/")
 

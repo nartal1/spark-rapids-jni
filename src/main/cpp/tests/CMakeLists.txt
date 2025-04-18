@@ -85,3 +85,6 @@ ConfigureTest(PARSE_URI
 ConfigureTest(SUBSTRING_INDEX
     substring_index.cpp)
 
+
+ConfigureTest(DECIMAL_DIV
+    decimal_div_test.cpp)
