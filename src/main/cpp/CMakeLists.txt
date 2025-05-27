@@ -86,6 +86,11 @@ set_property(
 )
 message(VERBOSE "SPARK_RAPIDS_JNI: RMM_LOGGING_LEVEL = '${RMM_LOGGING_LEVEL}'.")
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+# set_source_files_properties(src/decimal_utils.cu PROPERTIES COMPILE_FLAGS "-g -G -Xptxas -O0 -keep --verbose")
+# set_source_files_properties(src/decimal_utils.cu PROPERTIES COMPILE_FLAGS "-Xptxas -O0 -keep --verbose")
+
 # ##################################################################################################
 # * compiler options ------------------------------------------------------------------------------
 

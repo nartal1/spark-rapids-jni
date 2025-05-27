@@ -88,6 +88,12 @@ ConfigureTest(LIST_SLICE
 ConfigureTest(SUBSTRING_INDEX
     substring_index.cpp)
 
+ConfigureTest(POW_OF_TEN
+    pow_ten_nvbug.cu)
+
+ConfigureTest(DECIMAL_DIVIDE_BUG
+    decimal_divide_bug_test.cu)
+
 ConfigureTest(SHUFFLE_SPLIT
     shuffle_split.cu)
     
@@ -96,3 +102,4 @@ ConfigureTest(HLLPP
 
 ConfigureTest(CONV
     number_converter.cpp)
+

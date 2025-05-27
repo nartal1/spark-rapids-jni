@@ -104,7 +104,7 @@ struct chunked256 {
 
   inline __device__ uint64_t as_64_bits() const { return chunks[0]; }
 
- private:
+//  private:
   uint64_t chunks[4];
 };
 
@@ -817,7 +817,14 @@ struct dec128_divider {
       overflows[i] = is_greater_than_decimal_38(result);
     } else {
       // Regular multiply followed by a divide
-      if (n_shift_exp < 0) { n = multiply(n, pow_ten(-n_shift_exp)); }
+      if (n_shift_exp < 0) { 
+        n = multiply(n, pow_ten(-n_shift_exp));
+        // printf("after multiply in n_shift_exp < 0\n");
+        // printf("n-chunks[0] after multiply: %llu\n", n.chunks[0]);
+        // printf("n-chunks[1] after multiply: %llu\n", n.chunks[1]);
+        // printf("n-chunks[2]: %llu\n", n.chunks[2]);
+        // printf("n-chunks[3]: %llu\n", n.chunks[3]);
+      }
       chunked256 result;
       if constexpr (is_int_div) {
         result           = integer_divide(n, d);
@@ -826,6 +833,8 @@ struct dec128_divider {
         result           = divide_and_round(n, d);
         quotient_data[i] = result.as_128_bits();
       }
+      // printf("result-chunks[0] after divide: %llu\n", result.chunks[0]);
+      // printf("result-chunks[1] after divide: %llu\n", result.chunks[1]);
       overflows[i] = is_greater_than_decimal_38(result);
     }
   }
