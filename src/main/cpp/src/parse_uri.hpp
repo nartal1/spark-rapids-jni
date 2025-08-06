@@ -17,6 +17,7 @@
 #pragma once
 
 #include <cudf/strings/strings_column_view.hpp>
+#include <cudf/table/table.hpp>
 #include <cudf/types.hpp>
 #include <cudf/utilities/default_stream.hpp>
 
@@ -106,6 +107,123 @@ std::unique_ptr<cudf::column> parse_uri_to_query(
  */
 std::unique_ptr<cudf::column> parse_uri_to_path(
   cudf::strings_column_view const& input,
+  rmm::cuda_stream_view stream      = cudf::get_default_stream(),
+  rmm::device_async_resource_ref mr = rmm::mr::get_current_device_resource());
+
+// ANSI-aware APIs that throw exceptions on invalid URLs
+
+/**
+ * @brief Parse protocol from URIs with ANSI mode support.
+ *
+ * @param input Input string column of URIs to parse
+ * @param ansi_mode If true, throw exception on invalid URLs
+ * @param stream Stream on which to operate.
+ * @param mr Memory resource for returned column
+ * @return std::unique_ptr<cudf::column> Column with parsed protocols
+ * @throws exception_with_row_index if ansi_mode is true and invalid URLs are found
+ */
+std::unique_ptr<cudf::column> parse_uri_to_protocol_ansi(
+  cudf::strings_column_view const& input,
+  bool ansi_mode,
+  rmm::cuda_stream_view stream      = cudf::get_default_stream(),
+  rmm::device_async_resource_ref mr = rmm::mr::get_current_device_resource());
+
+/**
+ * @brief Parse host from URIs with ANSI mode support.
+ *
+ * @param input Input string column of URIs to parse
+ * @param ansi_mode If true, throw exception on invalid URLs
+ * @param stream Stream on which to operate.
+ * @param mr Memory resource for returned column
+ * @return std::unique_ptr<cudf::column> Column with parsed hosts
+ * @throws exception_with_row_index if ansi_mode is true and invalid URLs are found
+ */
+std::unique_ptr<cudf::column> parse_uri_to_host_ansi(
+  cudf::strings_column_view const& input,
+  bool ansi_mode,
+  rmm::cuda_stream_view stream      = cudf::get_default_stream(),
+  rmm::device_async_resource_ref mr = rmm::mr::get_current_device_resource());
+
+/**
+ * @brief Parse query from URIs with ANSI mode support.
+ *
+ * @param input Input string column of URIs to parse
+ * @param ansi_mode If true, throw exception on invalid URLs
+ * @param stream Stream on which to operate.
+ * @param mr Memory resource for returned column
+ * @return std::unique_ptr<cudf::column> Column with parsed queries
+ * @throws exception_with_row_index if ansi_mode is true and invalid URLs are found
+ */
+std::unique_ptr<cudf::column> parse_uri_to_query_ansi(
+  cudf::strings_column_view const& input,
+  bool ansi_mode,
+  rmm::cuda_stream_view stream      = cudf::get_default_stream(),
+  rmm::device_async_resource_ref mr = rmm::mr::get_current_device_resource());
+
+/**
+ * @brief Parse query from URIs with literal match and ANSI mode support.
+ *
+ * @param input Input string column of URIs to parse.
+ * @param query_match String to match in query.
+ * @param ansi_mode If true, throw exception on invalid URLs
+ * @param stream Stream on which to operate.
+ * @param mr Memory resource for returned column.
+ * @return std::unique_ptr<cudf::column> Column with parsed queries
+ * @throws exception_with_row_index if ansi_mode is true and invalid URLs are found
+ */
+std::unique_ptr<cudf::column> parse_uri_to_query_ansi(
+  cudf::strings_column_view const& input,
+  std::string const& query_match,
+  bool ansi_mode,
+  rmm::cuda_stream_view stream      = cudf::get_default_stream(),
+  rmm::device_async_resource_ref mr = rmm::mr::get_current_device_resource());
+
+/**
+ * @brief Parse query from URIs with column match and ANSI mode support.
+ *
+ * @param input Input string column of URIs to parse.
+ * @param query_match string column to match in query.
+ * @param ansi_mode If true, throw exception on invalid URLs
+ * @param stream Stream on which to operate.
+ * @param mr Memory resource for returned column.
+ * @return std::unique_ptr<cudf::column> Column with parsed queries
+ * @throws exception_with_row_index if ansi_mode is true and invalid URLs are found
+ */
+std::unique_ptr<cudf::column> parse_uri_to_query_ansi(
+  cudf::strings_column_view const& input,
+  cudf::strings_column_view const& query_match,
+  bool ansi_mode,
+  rmm::cuda_stream_view stream      = cudf::get_default_stream(),
+  rmm::device_async_resource_ref mr = rmm::mr::get_current_device_resource());
+
+/**
+ * @brief Parse path from URIs with ANSI mode support.
+ *
+ * @param input Input string column of URIs to parse
+ * @param ansi_mode If true, throw exception on invalid URLs
+ * @param stream Stream on which to operate.
+ * @param mr Memory resource for returned column
+ * @return std::unique_ptr<cudf::column> Column with parsed paths
+ * @throws exception_with_row_index if ansi_mode is true and invalid URLs are found
+ */
+std::unique_ptr<cudf::column> parse_uri_to_path_ansi(
+  cudf::strings_column_view const& input,
+  bool ansi_mode,
+  rmm::cuda_stream_view stream      = cudf::get_default_stream(),
+  rmm::device_async_resource_ref mr = rmm::mr::get_current_device_resource());
+
+/**
+ * @brief Parse protocol from URIs and return table with validity information.
+ *
+ * @param input Input string column of URIs to parse
+ * @param ansi_mode If true, include validity column; if false, return only parsed data
+ * @param stream Stream on which to operate.
+ * @param mr Memory resource for returned table
+ * @return std::unique_ptr<cudf::table> Table with parsed protocols and optionally validity info
+ */
+std::unique_ptr<cudf::table> parse_uri_to_protocol_table(
+  cudf::strings_column_view const& input,
+  bool ansi_mode,
   rmm::cuda_stream_view stream      = cudf::get_default_stream(),
   rmm::device_async_resource_ref mr = rmm::mr::get_current_device_resource());
 
