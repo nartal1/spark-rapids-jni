@@ -32,9 +32,7 @@ public class ParseURI {
    *
    * @param URIColumn The input strings column in which each row contains a URI.
    * @return A string column with protocol data extracted.
-   * @deprecated Use {@link #parseURIProtocol(ColumnView, boolean)} instead.
    */
-  @Deprecated
   public static ColumnVector parseURIProtocol(ColumnView uriColumn) {
     return parseURIProtocol(uriColumn, false);
   }
@@ -56,9 +54,7 @@ public class ParseURI {
    *
    * @param URIColumn The input strings column in which each row contains a URI.
    * @return A string column with host data extracted.
-   * @deprecated Use {@link #parseURIHost(ColumnView, boolean)} instead.
    */
-  @Deprecated
   public static ColumnVector parseURIHost(ColumnView uriColumn) {
     return parseURIHost(uriColumn, false);
   }
@@ -80,9 +76,7 @@ public class ParseURI {
    *
    * @param URIColumn The input strings column in which each row contains a URI.
    * @return A string column with query data extracted.
-   * @deprecated Use {@link #parseURIQuery(ColumnView, boolean)} instead.
    */
-  @Deprecated
   public static ColumnVector parseURIQuery(ColumnView uriColumn) {
     return parseURIQuery(uriColumn, false);
   }
@@ -105,9 +99,7 @@ public class ParseURI {
    * @param URIColumn The input strings column in which each row contains a URI.
    * @param String The parameter to extract from the query.
    * @return A string column with query data extracted.
-   * @deprecated Use {@link #parseURIQueryWithLiteral(ColumnView, String, boolean)} instead.
    */
-  @Deprecated
   public static ColumnVector parseURIQueryWithLiteral(ColumnView uriColumn, String query) {
     return parseURIQueryWithLiteral(uriColumn, query, false);
   }
@@ -131,9 +123,7 @@ public class ParseURI {
    * @param URIColumn The input strings column in which each row contains a URI.
    * @param String The parameter to extract from the query.
    * @return A string column with query data extracted.
-   * @deprecated Use {@link #parseURIQueryWithColumn(ColumnView, ColumnView, boolean)} instead.
    */
-  @Deprecated
   public static ColumnVector parseURIQueryWithColumn(ColumnView uriColumn, ColumnView queryColumn) {
     return parseURIQueryWithColumn(uriColumn, queryColumn, false);
   }
@@ -157,9 +147,7 @@ public class ParseURI {
    *
    * @param URIColumn The input strings column in which each row contains a URI.
    * @return A string column with the URI path extracted.
-   * @deprecated Use {@link #parseURIPath(ColumnView, boolean)} instead.
    */
-  @Deprecated
   public static ColumnVector parseURIPath(ColumnView uriColumn) {
     return parseURIPath(uriColumn, false);
   }
