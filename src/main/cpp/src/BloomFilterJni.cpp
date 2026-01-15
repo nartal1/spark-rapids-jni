@@ -22,6 +22,7 @@
 
 extern "C" {
 
+// V1 creation (for backward compatibility with older spark-rapids)
 JNIEXPORT jlong JNICALL Java_com_nvidia_spark_rapids_jni_BloomFilter_creategpu(
   JNIEnv* env, jclass, jint numHashes, jlong bloomFilterBits)
 {
@@ -30,7 +31,22 @@ JNIEXPORT jlong JNICALL Java_com_nvidia_spark_rapids_jni_BloomFilter_creategpu(
     cudf::jni::auto_set_device(env);
 
     int bloom_filter_longs = static_cast<int>((bloomFilterBits + 63) / 64);
-    auto bloom_filter      = spark_rapids_jni::bloom_filter_create(numHashes, bloom_filter_longs);
+    auto bloom_filter      = spark_rapids_jni::bloom_filter_create(numHashes, bloom_filter_longs, 1);
+    return reinterpret_cast<jlong>(bloom_filter.release());
+  }
+  JNI_CATCH(env, 0);
+}
+
+// V1/V2 creation with explicit version parameter (for Spark 4.1+ support)
+JNIEXPORT jlong JNICALL Java_com_nvidia_spark_rapids_jni_BloomFilter_creategpuWithVersion(
+  JNIEnv* env, jclass, jint numHashes, jlong bloomFilterBits, jint version)
+{
+  JNI_TRY
+  {
+    cudf::jni::auto_set_device(env);
+
+    int bloom_filter_longs = static_cast<int>((bloomFilterBits + 63) / 64);
+    auto bloom_filter      = spark_rapids_jni::bloom_filter_create(numHashes, bloom_filter_longs, version);
     return reinterpret_cast<jlong>(bloom_filter.release());
   }
   JNI_CATCH(env, 0);

@@ -47,6 +47,24 @@ public class BloomFilterTest {
   }
 
   @Test
+  void testBuildAndProbeV2(){
+    int numHashes = 3;
+    long bloomFilterBits = 4 * 1024 * 1024;
+
+    // Test V2 bloom filter (Spark 4.1+ format)
+    try (ColumnVector input = ColumnVector.fromLongs(20, 80, 100, 99, 47, -9, 234000000);
+         Scalar bloomFilter = BloomFilter.create(numHashes, bloomFilterBits, BloomFilter.VERSION_2)){
+      
+      BloomFilter.put(bloomFilter, input);
+      try(ColumnVector probe = ColumnVector.fromLongs(20, 80, 100, 99, 47, -9, 234000000, -10, 1, 2, 3);
+          ColumnVector expected = ColumnVector.fromBooleans(true, true, true, true, true, true, true, false, false, false, false);
+          ColumnVector result = BloomFilter.probe(bloomFilter, probe)){
+        AssertUtils.assertColumnsAreEqual(expected, result);
+      }
+    }
+  }
+
+  @Test
   void testBuildAndProbeBuffer(){
     int numHashes = 3;
     long bloomFilterBits = 4 * 1024 * 1024;
@@ -148,6 +166,60 @@ public class BloomFilterTest {
           Scalar merged = BloomFilter.merge(premerge);
           ColumnVector result = BloomFilter.probe(merged, probe)){
           AssertUtils.assertColumnsAreEqual(expected, result);
+      }
+    }
+  }
+
+  @Test
+  void testBuildMergeProbeV2(){
+    int numHashes = 3;
+    long bloomFilterBits = 4 * 1024 * 1024;
+
+    // Test V2 bloom filter merge (Spark 4.1+ format)
+    try (ColumnVector colA = ColumnVector.fromLongs(20, 80, 100, 99, 47, -9, 234000000);
+         ColumnVector colB = ColumnVector.fromLongs(100, 200, 300, 400);
+         ColumnVector colC = ColumnVector.fromLongs(-100, -200, -300, -400);
+         Scalar bloomFilterA = BloomFilter.create(numHashes, bloomFilterBits, BloomFilter.VERSION_2);
+         Scalar bloomFilterB = BloomFilter.create(numHashes, bloomFilterBits, BloomFilter.VERSION_2);
+         Scalar bloomFilterC = BloomFilter.create(numHashes, bloomFilterBits, BloomFilter.VERSION_2)){
+
+      BloomFilter.put(bloomFilterA, colA);
+      BloomFilter.put(bloomFilterB, colB);
+      BloomFilter.put(bloomFilterC, colC);
+
+      try (ColumnVector bloomA = ColumnVector.fromScalar(bloomFilterA, 1);
+           ColumnVector bloomB = ColumnVector.fromScalar(bloomFilterB, 1);
+           ColumnVector bloomC = ColumnVector.fromScalar(bloomFilterC, 1)) {
+
+        try (ColumnVector premerge = ColumnVector.concatenate(bloomA, bloomB, bloomC)) {
+          try (ColumnVector probe = ColumnVector.fromLongs(-9, 200, 300, 6000, -2546, 99,
+                  65535, 0, -100, -200, -300, -400);
+               ColumnVector expected = ColumnVector.fromBooleans(true, true, true,
+                  false, false, true, false, false, true, true, true, true);
+              Scalar merged = BloomFilter.merge(premerge);
+              ColumnVector result = BloomFilter.probe(merged, probe)) {
+            AssertUtils.assertColumnsAreEqual(expected, result);
+          }
+        }
+      }
+    }
+  }
+
+  @Test
+  void testBuildAndProbeBufferV2(){
+    int numHashes = 3;
+    long bloomFilterBits = 4 * 1024 * 1024;
+
+    // Test V2 bloom filter probe with buffer (Spark 4.1+ format)
+    try (ColumnVector input = ColumnVector.fromLongs(20, 80, 100, 99, 47, -9, 234000000);
+         Scalar bloomFilter = BloomFilter.create(numHashes, bloomFilterBits, BloomFilter.VERSION_2)){
+      
+      BloomFilter.put(bloomFilter, input);
+
+      try(ColumnVector probe = ColumnVector.fromLongs(20, 80, 100, 99, 47, -9, 234000000, -10, 1, 2, 3);
+          ColumnVector expected = ColumnVector.fromBooleans(true, true, true, true, true, true, true, false, false, false, false);
+          ColumnVector result = BloomFilter.probe(bloomFilter.getListAsColumnView().getData(), probe)){
+        AssertUtils.assertColumnsAreEqual(expected, result);
       }
     }
   }

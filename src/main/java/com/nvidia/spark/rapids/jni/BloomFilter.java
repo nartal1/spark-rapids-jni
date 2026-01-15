@@ -28,8 +28,15 @@ public class BloomFilter {
     NativeDepsLoader.loadNativeDeps();
   }
 
+  /** Bloom filter version 1 (Spark 4.0 and earlier) */
+  public static final int VERSION_1 = 1;
+  
+  /** Bloom filter version 2 (Spark 4.1+, SPARK-47547) */
+  public static final int VERSION_2 = 2;
+
   /**
    * Create a bloom filter with the specified number of hashes and bloom filter bits.
+   * Creates a V1 bloom filter for backwards compatibility.
    * @param numHashes The number of hashes to use when inserting values into the bloom filter or
    * when probing.
    * @param bloomFilterBits Size of the bloom filter in bits.
@@ -43,6 +50,28 @@ public class BloomFilter {
       throw new IllegalArgumentException("Bloom filters must have a positive number of bits");
     }
     return new Scalar(DType.LIST, creategpu(numHashes, bloomFilterBits));
+  }
+
+  /**
+   * Create a bloom filter with the specified number of hashes, bloom filter bits, and version.
+   * @param numHashes The number of hashes to use when inserting values into the bloom filter or
+   * when probing.
+   * @param bloomFilterBits Size of the bloom filter in bits.
+   * @param version The bloom filter version (VERSION_1 or VERSION_2). 
+   *                V2 is introduced in Spark 4.1+ and fixes int32 truncation issues.
+   * @return a Scalar object which encapsulates the bloom filter.
+   */
+  public static Scalar create(int numHashes, long bloomFilterBits, int version){
+    if(numHashes <= 0){
+      throw new IllegalArgumentException("Bloom filters must have a positive hash count");
+    }
+    if(bloomFilterBits <= 0){
+      throw new IllegalArgumentException("Bloom filters must have a positive number of bits");
+    }
+    if(version != VERSION_1 && version != VERSION_2){
+      throw new IllegalArgumentException("Bloom filter version must be 1 or 2");
+    }
+    return new Scalar(DType.LIST, creategpuWithVersion(numHashes, bloomFilterBits, version));
   }
 
   /**
@@ -92,7 +121,12 @@ public class BloomFilter {
     return new ColumnVector(probebuffer(bloomFilter.getAddress(), bloomFilter.getLength(), cv.getNativeView()));
   }
 
+  // Original V1 creation (backward compatible)
   private static native long creategpu(int numHashes, long bloomFilterBits) throws CudfException;
+  
+  // V1/V2 creation with explicit version (for Spark 4.1+ V2 support)
+  private static native long creategpuWithVersion(int numHashes, long bloomFilterBits, int version) throws CudfException;
+  
   private static native int put(long bloomFilter, long cv) throws CudfException;
   private static native long merge(long bloomFilters) throws CudfException;
   private static native long probe(long bloomFilter, long cv) throws CudfException;

@@ -25,20 +25,43 @@
 
 namespace spark_rapids_jni {
 
-// included only for testing purposes
-struct bloom_filter_header {
+// V1 bloom filter header (12 bytes) - Spark 4.0 and earlier
+struct bloom_filter_header_v1 {
   int version;
   int num_hashes;
   int num_longs;
 };
-constexpr int bloom_filter_header_size = sizeof(bloom_filter_header);
+
+// V2 bloom filter header (16 bytes) - Spark 4.1+ (SPARK-47547)
+// V2 adds a seed field and fixes int32 truncation issue in bit indexing
+struct bloom_filter_header_v2 {
+  int version;
+  int num_hashes;
+  int seed;
+  int num_longs;
+};
+
+// Unified header structure that can represent both V1 and V2
+struct bloom_filter_header {
+  int version;
+  int num_hashes;
+  int seed;      // Only used in V2, always 0 in V1
+  int num_longs;
+};
+
+constexpr int bloom_filter_header_v1_size = sizeof(bloom_filter_header_v1);  // 12 bytes
+constexpr int bloom_filter_header_v2_size = sizeof(bloom_filter_header_v2);  // 16 bytes
+
+// For backwards compatibility
+constexpr int bloom_filter_header_size = bloom_filter_header_v1_size;
 
 /**
  * @brief Create an empty bloom filter of the specified size in (64 bit) longs with using
  * the specified number of hashes to be used when operating on the filter.
+ * Creates a V1 bloom filter for backwards compatibility.
  *
  * @param num_hashes The number of hashes to use.
- * @param bloom_filter_longs Size of the bloom filter in bits.
+ * @param bloom_filter_longs Size of the bloom filter in longs.
  * @param stream CUDA stream used for device memory operations and kernel launches.
  * @param mr Device memory resource used to allocate the returned bloom filter's memory.
  * @returns An list_scalar wrapping a packed Spark bloom_filter.
@@ -47,6 +70,24 @@ constexpr int bloom_filter_header_size = sizeof(bloom_filter_header);
 std::unique_ptr<cudf::list_scalar> bloom_filter_create(
   int num_hashes,
   int bloom_filter_longs,
+  rmm::cuda_stream_view stream      = cudf::get_default_stream(),
+  rmm::device_async_resource_ref mr = rmm::mr::get_current_device_resource_ref());
+
+/**
+ * @brief Create an empty bloom filter of the specified size and version.
+ *
+ * @param num_hashes The number of hashes to use.
+ * @param bloom_filter_longs Size of the bloom filter in longs.
+ * @param version The bloom filter version (1 or 2). V2 is introduced in Spark 4.1+ (SPARK-47547).
+ * @param stream CUDA stream used for device memory operations and kernel launches.
+ * @param mr Device memory resource used to allocate the returned bloom filter's memory.
+ * @returns An list_scalar wrapping a packed Spark bloom_filter.
+ *
+ */
+std::unique_ptr<cudf::list_scalar> bloom_filter_create(
+  int num_hashes,
+  int bloom_filter_longs,
+  int version,
   rmm::cuda_stream_view stream      = cudf::get_default_stream(),
   rmm::device_async_resource_ref mr = rmm::mr::get_current_device_resource_ref());
 
