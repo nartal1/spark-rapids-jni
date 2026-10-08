@@ -245,6 +245,7 @@ add_library(
   src/StringUtilsJni.cpp
   src/SubStringIndexJni.cpp
   src/TaskPriorityJni.cpp
+  src/VariantParserJni.cu
   src/ZOrderJni.cpp
   src/iceberg/IcebergBucketJni.cpp
   src/iceberg/IcebergDateTimeUtilJni.cpp
