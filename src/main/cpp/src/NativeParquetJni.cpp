@@ -17,6 +17,7 @@
 #include <bit>
 #include <cwctype>
 #include <limits>
+#include <memory>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -821,7 +822,11 @@ JNIEXPORT void JNICALL Java_com_nvidia_spark_rapids_jni_ParquetFooter_close(JNIE
                                                                             jclass,
                                                                             jlong handle)
 {
-  JNI_TRY { cudf::jni::safe_delete<rapids::jni::parquet_footer_with_row_group_offsets>(handle); }
+  JNI_TRY
+  {
+    [[maybe_unused]] std::unique_ptr<rapids::jni::parquet_footer_with_row_group_offsets> owner(
+      std::bit_cast<rapids::jni::parquet_footer_with_row_group_offsets*>(handle));
+  }
   JNI_CATCH(env, );
 }
 

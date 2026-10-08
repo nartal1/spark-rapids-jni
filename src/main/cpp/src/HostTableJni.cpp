@@ -234,7 +234,11 @@ JNIEXPORT void JNICALL Java_com_nvidia_spark_rapids_jni_HostTable_freeDeviceColu
   JNIEnv* env, jclass, jlong dev_column_view_handle)
 {
   JNI_NULL_CHECK(env, dev_column_view_handle, "view is null", );
-  JNI_TRY { cudf::jni::safe_delete<cudf::column_view>(dev_column_view_handle); }
+  JNI_TRY
+  {
+    [[maybe_unused]] std::unique_ptr<cudf::column_view> owner(
+      std::bit_cast<cudf::column_view*>(dev_column_view_handle));
+  }
   JNI_CATCH(env, );
 }
 
@@ -243,7 +247,11 @@ JNIEXPORT void JNICALL Java_com_nvidia_spark_rapids_jni_HostTable_freeHostTable(
                                                                                 jlong table_handle)
 {
   JNI_NULL_CHECK(env, table_handle, "table is null", );
-  JNI_TRY { cudf::jni::safe_delete<host_table_view>(table_handle); }
+  JNI_TRY
+  {
+    [[maybe_unused]] std::unique_ptr<host_table_view> owner(
+      std::bit_cast<host_table_view*>(table_handle));
+  }
   JNI_CATCH(env, );
 }
 
